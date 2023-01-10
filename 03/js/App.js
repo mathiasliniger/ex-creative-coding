@@ -3,8 +3,9 @@ const pixelRatio = window.devicePixelRatio;
 // variable globale
 let monCanvas;
 let mesOutils;
-let positionX = 0;
-let isAnimated = false;
+let angle = 0;
+let isRotating = false;
+const tiles = [];
 function start() {
   // constante locale
   monCanvas = document.getElementById("ecal");
@@ -14,21 +15,41 @@ function start() {
   monCanvas.style.height = window.innerHeight - 60 * pixelRatio;
   mesOutils = monCanvas.getContext("2d");
 
-  //on ajuste la positionX au centre du canvas
-  positionX = monCanvas.width / 2;
+  // on stoke les tiles dans un tableau
+  // pour pouvoir les manipuler plus facilement
+  const number = 30;
+  const size = monCanvas.width / number;
+  const color = Math.random() > 0.5 ? "black" : "black";
+  for (let i = 0; i < number; i++) {
+    for (let j = 0; j < number; j++) {
+      tiles.push(
+        new Tile(
+          i * size + size / 2,
+          j * size + size / 2,
+          size,
+          color,
+          mesOutils
+        )
+      );
+    }
+  }
 
   // on ajoute un écouteur d'événement "click"
   //  sur le document
   document.addEventListener("click", function (event) {
-    console.log(event);
-    // if (event.key == "Enter") {
-    if (isAnimated == true) {
-      isAnimated = false;
-    } else {
-      isAnimated = true;
-    }
-    // isAnimated = !isAnimated;
-    // }
+    // on vérifie si l'utilisateur a cliqué sur un tile
+    tiles.forEach((tile) => {
+      if (
+        (event.clientX - 60) * pixelRatio > tile.x - tile.size / 2 &&
+        (event.clientX - 60) * pixelRatio < tile.x + tile.size / 2 &&
+        (event.clientY - 60) * pixelRatio > tile.y - tile.size / 2 &&
+        (event.clientY - 60) * pixelRatio < tile.y + tile.size / 2
+      ) {
+        // on inverse la rotation du tile
+        // tile.rotation = !tile.rotation;
+        tile.updateAngle();
+      }
+    });
   });
 
   // lancement de la fonction de dessin
@@ -40,40 +61,15 @@ function start() {
 function animate() {
   // on efface le canvas
   mesOutils.clearRect(0, 0, monCanvas.width, monCanvas.height);
-  // on incremente la position X
-  if (isAnimated == true) {
-    positionX += 1;
-  }
-  // on dessine
-  dessine();
-  //si la position X est plus grande que la largeur du canvas
-  //on la remet à 0
-  if (positionX > monCanvas.width) {
-    positionX = 0;
-  }
+
+  // on dessine les tiles
+  tiles.forEach((tile) => {
+    tile.draw();
+  });
 
   // on demande à rappeler la fonction animate
   // à la prochaine frame
   requestAnimationFrame(animate);
-}
-
-function dessine() {
-  // dessine un cercle au centre du canvas
-  // outline en vert
-  // remplissage en vert clair
-  mesOutils.strokeStyle = "green";
-  mesOutils.fillStyle = "lightgreen";
-  mesOutils.beginPath();
-  mesOutils.arc(
-    positionX,
-    monCanvas.height / 2,
-    100 * pixelRatio,
-    0,
-    2 * Math.PI
-  );
-  mesOutils.stroke();
-  mesOutils.fill();
-  mesOutils.closePath();
 }
 
 // attente que tous les éléments soient chargés
